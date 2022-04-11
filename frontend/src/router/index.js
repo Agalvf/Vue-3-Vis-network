@@ -1,12 +1,24 @@
 import { createRouter, createWebHistory } from "vue-router";
-import Shark from "../components/Shark.vue"
+import App from "../App.vue";
+import Shark from "../components/Shark.vue";
+import Grafos from "../components/Grafos.vue";
 
 const routes = [
-    {
-      path: "/shark",
-      name: "Shark",
-      component: Shark,
-    }
+  {
+    path: "/",
+    name: "App",
+    component: App,
+  },
+  {
+    path: "/shark",
+    name: "Shark",
+    component: Shark,
+  },
+  {
+    path: "/grafos",
+    name: "Grafos",
+    component: Grafos,
+  },
 ];
 
 const router = createRouter({
