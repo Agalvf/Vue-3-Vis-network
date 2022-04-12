@@ -1,3 +1,3 @@
-module.exports = {
-  '*.{js,jsx,vue}': 'vue-cli-service lint'
-}
+export default {
+  "*.{js,jsx,vue}": "vue-cli-service lint",
+};

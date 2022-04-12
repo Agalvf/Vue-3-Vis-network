@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import App from "../App.vue";
 import Shark from "../components/Shark.vue";
-import Grafos from "../components/Grafos.vue";
 
 const routes = [
   {
@@ -13,11 +12,6 @@ const routes = [
     path: "/shark",
     name: "Shark",
     component: Shark,
-  },
-  {
-    path: "/grafos",
-    name: "Grafos",
-    component: Grafos,
   },
 ];
 
