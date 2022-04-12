@@ -1,15 +1,26 @@
 <template>
-  <div id="app">
-    <div id="mynetwork"></div>
+  <div class="d-flex w-100 h-100 mx-auto flex-column">
+    <HeaderVue></HeaderVue>
+    <div class="space"></div>
+    <div class="container py-5">
+      <div class="row justify-content-md-center">
+        <div id="mynetwork" class="col"></div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 /* import { data } from 'vis-network'; */
+import HeaderVue from "./components/HeaderVue.vue";
 const vis = require("vis-network");
 
 export default {
-  name: "GrafosMy",
+  name: "App",
+
+  components: {
+    HeaderVue,
+  },
   data() {
     return {
       nodes: [
@@ -25,8 +36,11 @@ export default {
         { from: 2, to: 4 },
       ],
       options: {
+        locale: "es",
+        height: '100%',
+        width: '100%',
         manipulation: {
-          enabled: false,
+          enabled: true,
           initiallyActive: true,
           addEdge: function (edgeData, callback) {
             if (edgeData.from === edgeData.to) {
@@ -47,7 +61,6 @@ export default {
       network: null,
     };
   },
-
   computed: {
     graph_data() {
       return {
@@ -66,12 +79,40 @@ export default {
       this.options
     );
   },
+  methods: {
+    addNode() {
+      /* const id = new Date().getTime(); */
+      console.log(this.network.nodes);
+    },
+    addEdge() {
+      const n1 = Math.floor(Math.random() * this.network.nodes.length);
+      const n2 = Math.floor(Math.random() * this.network.nodes.length);
+      this.network.edges.push({
+        id: `${this.network.nodes[n1].id}-${this.network.nodes[n2].id}`,
+        from: this.network.nodes[n1].id,
+        to: this.network.nodes[n2].id,
+      });
+    },
+    resetNetwork() {
+      this.network = {
+        nodes: this.nodes.slice(0),
+        edges: this.edges.slice(0),
+        options: {},
+      };
+    },
+    removeNode() {
+      this.network.nodes.splice(0, 1);
+    },
+    removeEdge() {
+      this.network.edges.splice(0, 1);
+    },
+  },
 };
 </script>
 
 <style>
 #mynetwork {
-  height: 500px;
-  margin: 3px 0;
+  height: 400px;
+  border: 1px solid #000;
 }
 </style>
