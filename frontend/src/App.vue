@@ -1,6 +1,8 @@
 <template>
+  
   <div class="d-flex w-100 h-100 mx-auto flex-column">
     <HeaderVue></HeaderVue>
+    <div class="space"></div>
     <div class="container py-5">
       <div class="row justify-content-md-center">
         <div id="mynetwork" class="col"></div>
