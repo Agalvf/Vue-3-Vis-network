@@ -4,10 +4,9 @@ module.exports = {
   },
 
   extends: [
-    "plugin:vue/vue3-essential",
-    "eslint:recommended",
+    'eslint:recommended',
     "plugin:vue/vue3-recommended",
-    "@vue/prettier",
+    "prettier"
   ],
   plugins: ["vue"],
 };
