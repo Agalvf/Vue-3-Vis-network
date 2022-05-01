@@ -45,8 +45,12 @@
                     <a href="#" class="dropdown-item">Nuevo grafo &raquo;</a>
                     <ul class="dropdown-menu dropdown-submenu">
                       <li>
-                        <button class="dropdown-item" type="button">
-                          Personalizado
+                        <button
+                          class="dropdown-item"
+                          type="button"
+                          @click="crearVacio()"
+                        >
+                          Vació
                         </button>
                       </li>
                       <li>
@@ -75,7 +79,11 @@
                     </button>
                   </li>
                   <li>
-                    <button class="dropdown-item" type="button">
+                    <button
+                      class="dropdown-item"
+                      type="button"
+                      @click="exportarJson()"
+                    >
                       Exportar datos
                     </button>
                   </li>
@@ -88,7 +96,11 @@
                     <button class="dropdown-item" type="button">Inicio</button>
                   </li>
                   <li>
-                    <button class="dropdown-item" type="button">
+                    <button
+                      class="dropdown-item"
+                      type="button"
+                      @click="imprimirCanvas()"
+                    >
                       Imprimir
                     </button>
                   </li>
@@ -256,10 +268,85 @@
           <button class="btn btn-light" type="button" @click="añadirNodo()">
             Añadir nodo
           </button>
-          <button type="button" class="btn btn-light">Añadir arista</button>
+          <button
+            type="button"
+            class="btn btn-light"
+            data-bs-toggle="modal"
+            data-bs-target="#staticBackdrop"
+            @click="añadirArista()"
+          >
+            Añadir arista
+          </button>
         </div>
       </div>
     </div>
+
+    <!-- Modal añadir arista -->
+    <div
+      id="staticBackdrop"
+      class="modal fade"
+      data-bs-backdrop="static"
+      data-bs-keyboard="false"
+      tabindex="-1"
+      aria-labelledby="staticBackdropLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 id="staticBackdropLabel" class="modal-title">Añadir arista</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="container-fluid">
+              <div class="row">
+                <div class="col">
+                  <p>Nodo 1: <input type="text" /></p>
+                </div>
+                <div class="col">
+                  <p>Nodo 2: <input type="text" /></p>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col">
+                  <p>Peso: <input type="text" /></p>
+                </div>
+                <div class="row form-check">
+                  <div class="col">
+                    <input
+                      id="flexCheckChecked"
+                      class="form-check-input"
+                      type="checkbox"
+                      value=""
+                      checked
+                    />
+                    <label class="form-check-label" for="flexCheckChecked">
+                      ¿Es dirigido?
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cerrar
+            </button>
+            <button type="button" class="btn btn-primary">Aceptar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--  -->
   </div>
 </template>
 
@@ -290,7 +377,7 @@ export default {
           },
         },
         nodes: {
-          physics: true,
+          physics: false,
         },
       },
       container: "",
@@ -330,6 +417,18 @@ export default {
         label: `Node ${this.nodes.length + 1}`,
       });
     },
+    añadirArista() {
+      console.log(this.nodes);
+    },
+    crearVacio() {
+      this.nodes = new DataSet();
+      this.edges = new DataSet();
+      this.network = new Network(
+        this.container,
+        { edges: this.edges, nodes: this.nodes },
+        this.options
+      );
+    },
     grafoAleatorio() {
       const numeroNodos = Math.floor(Math.random() * (6 - 1) + 3);
       const nodes = Array(numeroNodos)
@@ -357,6 +456,14 @@ export default {
         { edges: this.edges, nodes: this.nodes },
         this.options
       );
+    },
+
+    imprimirCanvas() {
+      const win1 = window.open();
+      var canvas = document.getElementBy("canvas");
+      win1.document.write("<img src = '" + canvas.toDataURL() + "'/>");
+      win1.print();
+      win1.location.reload();
     },
   },
 };

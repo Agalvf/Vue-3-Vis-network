@@ -15,9 +15,11 @@
     "boostrap": "^2.0.0",
     "bootstrap": "^5.1.3",
     "core-js": "^3.21.1",
+    "fs": "^0.0.1-security",
     "npm-check-updates": "^12.5.8",
     "vis-network": "^9.1.2",
     "vue": "^3.2.31",
+    "vue-json-csv": "^2.1.0",
     "vue-router": "^4.0.14"
   },
   "devDependencies": {
