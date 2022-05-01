@@ -1,9 +1,7 @@
 <template>
   <header class="mb-auto">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-      <!-- Container wrapper -->
       <div class="container-fluid">
-        <!-- Toggle button -->
         <button
           class="navbar-toggler"
           type="button"
@@ -15,10 +13,7 @@
         >
           <i class="fas fa-bars"></i>
         </button>
-
-        <!-- Collapsible wrapper -->
         <div id="navbarSupportedContent" class="collapse navbar-collapse">
-          <!-- Navbar brand -->
           <a class="navbar-brand mt-2 mt-lg-0" href="#">
             <img
               src="https://mdbcdn.b-cdn.net/img/logo/mdb-transaprent-noshadows.webp"
@@ -27,19 +22,158 @@
               loading="lazy"
             />
           </a>
-          <!-- Left links -->
+
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item">
-              <a class="nav-link" href="#">Dashboard</a>
+            <li class="nav-item dropdown">
+              <a
+                id="navbarScrollingDropdown"
+                class="nav-link dropdown-toggle"
+                href="#"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                Archivo
+              </a>
+              <ul
+                class="dropdown-menu"
+                aria-labelledby="navbarScrollingDropdown"
+              >
+                <li class="nav-item dropdown">
+                  <a
+                    id="navbarScrollingDropdown"
+                    class="nav-link dropdown-toggle"
+                    href="#"
+                    role="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    Nuevo grafo
+                  </a>
+                  <ul
+                    class="dropdown-menu"
+                    aria-labelledby="navbarScrollingDropdown"
+                  >
+                    <li><a class="dropdown-item" href="#">Personalizado</a></li>
+                    <li>
+                      <a class="dropdown-item" href="#">Aleatorio</a>
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <button
+                    class="dropdown-item"
+                    type="button"
+                    @click="$emit('funcion')"
+                  >
+                    Grafo Aleatorio
+                  </button>
+                </li>
+                <li>
+                  <button class="dropdown-item" type="button">Abrir</button>
+                </li>
+                <li>
+                  <button class="dropdown-item" type="button">Cerrar</button>
+                </li>
+                <li>
+                  <button class="dropdown-item" type="button">Guardar</button>
+                </li>
+                <li>
+                  <button class="dropdown-item" type="button">
+                    Guardar como
+                  </button>
+                </li>
+                <li>
+                  <button class="dropdown-item" type="button">
+                    Exportar datos
+                  </button>
+                </li>
+                <li>
+                  <button class="dropdown-item" type="button">
+                    Importar datos
+                  </button>
+                </li>
+                <li>
+                  <button class="dropdown-item" type="button">Inicio</button>
+                </li>
+                <li>
+                  <button class="dropdown-item" type="button">Imprimir</button>
+                </li>
+              </ul>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">Team</a>
+
+            <li class="nav-item dropdown">
+              <a
+                id="navbarScrollingDropdown"
+                class="nav-link dropdown-toggle"
+                href="#"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                Editar
+              </a>
+              <ul
+                class="dropdown-menu"
+                aria-labelledby="navbarScrollingDropdown"
+              >
+                <li>
+                  <button class="dropdown-item" type="button">Deshacer</button>
+                </li>
+                <li>
+                  <button class="dropdown-item" type="button">Nodo</button>
+                </li>
+                <li>
+                  <button class="dropdown-item" type="button">Arco</button>
+                </li>
+              </ul>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">Projects</a>
+
+            <li class="nav-item dropdown">
+              <a
+                id="navbarScrollingDropdown"
+                class="nav-link dropdown-toggle"
+                href="#"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                Analizar
+              </a>
+              <ul
+                class="dropdown-menu"
+                aria-labelledby="navbarScrollingDropdown"
+              >
+                <li>
+                  <button class="dropdown-item" type="button">
+                    Algoritmos
+                  </button>
+                </li>
+              </ul>
+            </li>
+
+            <li class="nav-item dropdown">
+              <a
+                id="navbarScrollingDropdown"
+                class="nav-link dropdown-toggle"
+                href="#"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                Ventana
+              </a>
+              <ul
+                class="dropdown-menu"
+                aria-labelledby="navbarScrollingDropdown"
+              >
+                <li>
+                  <button class="dropdown-item" type="button">Gráfica</button>
+                  <button class="dropdown-item" type="button">Tabla</button>
+                </li>
+              </ul>
             </li>
           </ul>
-          <!-- Left links -->
         </div>
         <!-- Collapsible wrapper -->
 
@@ -80,6 +214,7 @@
               </li>
             </ul>
           </div>
+
           <!-- Avatar -->
           <div class="dropdown">
             <a
