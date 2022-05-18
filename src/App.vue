@@ -1,8 +1,10 @@
 <script lang="ts">
   import { defineComponent } from 'vue';
-  import { Network } from 'vis-network';
+  import { IdType, Network } from 'vis-network';
   import { DataSet } from 'vis-data';
   import 'https://unpkg.com/vis-network/standalone/umd/vis-network.min.js';
+  import 'https://unpkg.com/default-passive-events';
+
   import { jsPDF } from 'jspdf';
 
   export default defineComponent({
@@ -92,6 +94,12 @@
             label: this.pesoArista,
           });
         }
+      },
+
+      eliminarNodo(nodes: { remove: (arg0: IdType) => void }) {
+        this.network.once('click', function (this: Network, params) {
+          nodes.remove(this.getNodeAt(params.pointer.DOM));
+        });
       },
 
       crearVacio() {
@@ -193,155 +201,6 @@
     },
   });
 </script>
-
-<!-- <script setup lang="ts">
-import { onMounted, computed,ref } from 'vue';
-import { Network } from "vis-network";
-import { DataSet } from "vis-data";
-import "https://unpkg.com/vis-network/standalone/umd/vis-network.min.js";
-import { jsPDF } from "jspdf";
-
-let nodes = DataSet.prototype;
-let edges = DataSet.prototype;
-let network = Network.prototype
-let container = HTMLElement.prototype
-const origenArista = ref(0);
-const destinoArista = ref(0);
-const options = {
-  locale: "es",
-  height: "100%",
-  width: "100%",
-  manipulation: {
-    enabled: true,
-    initiallyActive: true,
-  },
-  nodes: {
-    physics: false,
-  }
-}
-
-const graphData = computed(() => {
-  nodes.add([
-    { id: 1, label: "Node 1" },
-    { id: 2, label: "Node 2" },
-    { id: 3, label: "Node 3" },
-    { id: 4, label: "Node 4" },
-  ]),
-
-  edges.add([
-    { from: 1, to: 3, label: "0" },
-    { from: 1, to: 2, label: "0" },
-    { from: 2, to: 4, label: "0" },
-  ])
-  return {edges,nodes}
-})
-
-onMounted(() => {
-  nodes = new DataSet()
-  edges = new DataSet()
-
-  const container = document.getElementById("mynetwork") as HTMLElement;
-  console.log(graphData.value)
-  const network = new Network(container, graphData.value, options);
-  console.log(graphData)
-})
-
-function añadirNodo() {
-  nodes.add({
-    id: nodes.length + 1,
-    label: `Node ${nodes.length + 1}`,
-  });
-};
-
-function añadirArista() {
-  console.log(nodes);
-}
-
-function crearVacio() {
-  edges.clear()
-  nodes.clear()
-};
-
-function grafoAleatorio() {
-  const numeroNodos = Math.floor(Math.random() * (12 - 1) + 3);
-  const nodesAleatorio = Array(numeroNodos)
-    .fill(0)
-    .map((_, i) => {
-      return { id: i, label: `Node ${i}` };
-    });
-
-  var arr = [];
-
-  for (var id = 0; id < numeroNodos; id++) {
-    arr.push({
-      from: id,
-      to: nodesAleatorio[Math.floor(Math.random() * numeroNodos)]["id"],
-      label: `${Math.floor(Math.random() * (15 - 1) + 1)}`
-    });
-  }
-  nodes.clear()
-  edges.clear()
-  nodes.add(nodesAleatorio);
-  edges.add(arr);
-  network = Network.prototype;
-  network = new Network(container, { edges, nodes }, options)
-};
-
-function imprimirCanvas() {
-  var canvas = document.querySelector('#mynetwork canvas') as HTMLCanvasElement
-  var png = canvas.toDataURL("image/png");
-  var windowContent = '<img src="' + png + '">';
-
-  var printWin = window.open('', '', 'width=340,height=260')!;
-  printWin.document.open();
-  printWin.document.write(windowContent);
-  printWin.document.close();
-
-  printWin.print();
-};
-
-function importarDatos() {
-
-};
-
-function exportarPDF() {
-  var imgData = (document.querySelector('#mynetwork canvas') as HTMLCanvasElement).toDataURL("image/png", 1.0);
-  var pdf = new jsPDF({
-    orientation: "landscape",
-    unit: "in",
-    format: [14, 4]
-  });
-
-  pdf.addImage(imgData, 'JPEG', 0, 0, 0, 0);
-  pdf.save("download.pdf");
-};
-
-function exportarImagen() {
-  var link = document.createElement('a');
-  link.download = 'filename.png';
-  link.href = (document.querySelector('#mynetwork canvas') as HTMLCanvasElement).toDataURL("image/png", 1.0);
-  link.click();
-};
-
-function guardar() {
-  const json = {
-    nodes: nodes.get(),
-    edges: edges.get()
-  }
-  console.log(json)
-  let text = JSON.stringify(json);
-  let filename = 'network.json';
-  let element = document.createElement('a');
-  element.setAttribute('href', 'data:application/json;charset=utf-8,' + encodeURIComponent(text));
-  element.setAttribute('download', filename);
-
-  element.style.display = 'none';
-  document.body.appendChild(element);
-
-  element.click();
-  document.body.removeChild(element);
-};
-</script> -->
 
 <template>
   <div>
@@ -635,6 +494,11 @@ function guardar() {
           <li class="nav-item">
             <button id="botones" class="btn" @click="mostrarModal = true">
               Añadir arista
+            </button>
+          </li>
+          <li class="nav-item">
+            <button id="botones" class="btn" @click="eliminarNodo(nodes)">
+              Eliminar nodo
             </button>
           </li>
           <li class="nav-item">
