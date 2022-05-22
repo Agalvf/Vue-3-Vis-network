@@ -24,6 +24,7 @@
         idNodes: 0,
         idEdges: 0,
         eventos: [],
+        esDirigido: false,
         options: {
           locale: 'es',
           height: '100%',
@@ -112,7 +113,7 @@
         this.usarBoton = false;
       },
 
-      crearArista(
+      /* crearArista(
         edges: {
           add: (arg0: { id: IdType; to: number; from: number }) => void;
         },
@@ -140,15 +141,25 @@
           console.log('Hola', mostrarModal);
         });
         this.idEdges++;
-      },
-
+        this.mostrarModal = true;
+      }, */
       añadirArista() {
-        if (this.destinoArista != null) {
-          this.edges.add({
-            from: this.origenArista,
-            to: this.destinoArista,
-            label: this.pesoArista,
-          });
+        if (this.destinoArista != null || this.origenArista != null) {
+          console.log(this.esDirigido);
+          if (this.esDirigido == true) {
+            this.edges.add({
+              from: this.origenArista,
+              to: this.destinoArista,
+              label: this.pesoArista,
+              arrows: 'to',
+            });
+          } else {
+            this.edges.add({
+              from: this.origenArista,
+              to: this.destinoArista,
+              label: this.pesoArista,
+            });
+          }
         }
       },
 
@@ -191,6 +202,7 @@
             from: id,
             to: nodes[Math.floor(Math.random() * numeroNodos)]['id'],
             label: `${Math.floor(Math.random() * (15 - 1) + 1)}`,
+            arrows: 'to',
           });
         }
 
@@ -270,7 +282,7 @@
 
 <template>
   <div>
-    <!-- <div class=""></div> -->
+    <div class="space"></div>
     <div class="d-flex w-100 h-100 mx-auto flex-column page">
       <header class="mb-auto">
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -336,14 +348,6 @@
                       </ul>
                     </li>
                     <li>
-                      <button class="dropdown-item" type="button">Abrir</button>
-                    </li>
-                    <li>
-                      <button class="dropdown-item" type="button">
-                        Cerrar
-                      </button>
-                    </li>
-                    <li>
                       <button
                         class="dropdown-item"
                         type="button"
@@ -390,11 +394,6 @@
                     <li>
                       <button class="dropdown-item" type="button">
                         Importar datos
-                      </button>
-                    </li>
-                    <li>
-                      <button class="dropdown-item" type="button">
-                        Inicio
                       </button>
                     </li>
                     <li>
@@ -556,6 +555,7 @@
         <ul class="nav nav-pills justify-content-center">
           <li class="nav-item">
             <button
+              id="botones"
               class="btn btn-primary"
               type="button"
               :disabled="usarBoton"
@@ -594,12 +594,12 @@
               Eliminar arista
             </button>
           </li>
-          <li class="nav-item">
+          <!-- <li class="nav-item">
             <button id="botones" :disabled="usarBoton" class="btn">
               &#8651; Deshacer
             </button>
-          </li>
-          <li class="nav-item">
+          </li> -->
+          <!-- <li class="nav-item">
             <button
               class="btn btn-primary"
               :disabled="usarBoton"
@@ -607,25 +607,27 @@
             >
               crearArista
             </button>
-          </li>
+          </li> -->
         </ul>
       </section>
     </div>
 
-    <!-- Modal -->
     <teleport to="body">
       <div
         v-if="mostrarModal"
-        class="modal draggable fade show"
+        class="modal fade show"
         tabindex="-1"
         aria-labelledby="exampleModalLabel"
         aria-hidden="true"
         role="dialog"
         style="display: block"
       >
-        <div class="modal-dialog modal-dialog-centered">
-          <div class="modal-content">
-            <div class="modal-header">
+        <div
+          class="modal-dialog modal-dialog-centered modal-backdrop-bg"
+          :draggable="true"
+        >
+          <div class="modal-content modal-backdrop-bg" :draggable="true">
+            <div class="modal-header" :draggable="true">
               <h5 id="exampleModalLabel" class="modal-title">Añadir arista</h5>
               <button
                 type="button"
@@ -634,35 +636,67 @@
               />
             </div>
             <div class="modal-body">
-              <p>
-                Origen:
-                <input
-                  v-model="origenArista"
-                  type="number"
-                  @change="
-                    () => {
-                      if (origenArista > nodes.length || origenArista < 0) {
-                        origenArista = 0;
-                      }
-                    }
-                  "
-                />
-              </p>
-              <p>
-                Destino:
-                <input
-                  v-model="destinoArista"
-                  type="number"
-                  @change="
-                    () => {
-                      if (destinoArista > nodes.length || destinoArista < 0) {
-                        destinoArista = nodes.length;
-                      }
-                    }
-                  "
-                />
-              </p>
-              <p>Peso <input v-model="pesoArista" type="text" /></p>
+              <div class="container-fluid">
+                <div class="row">
+                  <div class="col">
+                    <p>
+                      Origen:
+                      <input
+                        v-model="origenArista"
+                        type="number"
+                        @change="
+                          () => {
+                            if (
+                              origenArista > nodes.length ||
+                              origenArista < 0
+                            ) {
+                              origenArista = 0;
+                            }
+                          }
+                        "
+                      />
+                    </p>
+                  </div>
+                  <div class="col">
+                    <p>
+                      Destino:
+                      <input
+                        v-model="destinoArista"
+                        type="number"
+                        @change="
+                          () => {
+                            if (
+                              destinoArista > nodes.length ||
+                              destinoArista < 0
+                            ) {
+                              destinoArista = nodes.length;
+                            }
+                          }
+                        "
+                      />
+                    </p>
+                  </div>
+                </div>
+                <div class="row">
+                  <p class="col">
+                    Peso: <input v-model="pesoArista" class="col" type="text" />
+                  </p>
+                  <div class="col py-4">
+                    <div class="custom-control custom-checkbox">
+                      <input
+                        id="defaultChecked2"
+                        v-model="esDirigido"
+                        type="checkbox"
+                        class="custom-control-input"
+                        checked
+                      />
+                      <label class="custom-control-label" for="defaultChecked2"
+                        >¿Es dirigido?</label
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
             <div class="modal-footer">
               <button
@@ -670,7 +704,7 @@
                 class="btn btn-secondary"
                 @click="mostrarModal = false"
               >
-                Close
+                Cancelar
               </button>
               <button
                 type="button"
