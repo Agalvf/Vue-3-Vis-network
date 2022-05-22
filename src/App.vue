@@ -19,16 +19,25 @@
         origenArista: 0,
         destinoArista: 0,
         pesoArista: '0',
+        mostrarMensaje: '',
+        usarBoton: false,
+        idNodes: 0,
+        idEdges: 0,
+        eventos: [],
         options: {
           locale: 'es',
           height: '100%',
           width: '100%',
           manipulation: {
-            enabled: true,
+            enabled: false,
             initiallyActive: true,
           },
           nodes: {
             physics: false,
+          },
+          interaction: {
+            multiselect: false,
+            selectConnectedEdges: false,
           },
         },
       };
@@ -65,7 +74,6 @@
         ) {
           return true;
         } else {
-          console.log('False');
           return false;
         }
       },
@@ -76,17 +84,65 @@
       this.edges = new DataSet();
       this.container = document.getElementById('mynetwork') as HTMLInputElement;
       this.network = new Network(this.container, this.graph_data, this.options);
+      this.idNodes = this.nodes.length;
     },
 
     methods: {
-      añadirNodo() {
-        this.nodes.add({
-          id: this.nodes.length + 1,
-          label: `Node ${this.nodes.length + 1}`,
+      añadirNodo(
+        nodes: {
+          add: (arg0: {
+            id: IdType;
+            label: string;
+            x: number;
+            y: number;
+          }) => void;
+        },
+        idNodes: number
+      ) {
+        this.mostrarMensaje = 'Haz click sobre el grafo para agregar un nodo';
+        this.network.once('click', function (params) {
+          nodes.add({
+            id: idNodes + 1,
+            label: `Node ${idNodes + 1}`,
+            x: params.pointer.canvas.x,
+            y: params.pointer.canvas.y,
+          });
         });
+        this.idNodes++;
+        this.usarBoton = false;
       },
+
+      crearArista(
+        edges: {
+          add: (arg0: { id: IdType; to: number; from: number }) => void;
+        },
+        network: {
+          on: (
+            arg0: string,
+            arg1: (params: { pointer: { DOM: any } }) => void
+          ) => void;
+          off: (arg0: string) => void;
+        },
+        mostrarModal: boolean
+      ) {
+        const array: number[] = [];
+        network.on('selectNode', function (params: { pointer: { DOM: any } }) {
+          array.push(this.getNodeAt(params.pointer.DOM));
+          if (array.length == 2) {
+            network.off('selectNode');
+            console.log(array);
+            return (mostrarModal = true);
+          } else if (array.length == 0) {
+            this.mostrarMensaje = 'Seleccione el primer nodo';
+          } else {
+            this.mostrarMensaje = 'Seleccione el segundo nodo';
+          }
+          console.log('Hola', mostrarModal);
+        });
+        this.idEdges++;
+      },
+
       añadirArista() {
-        console.log(this.origenArista, this.destinoArista, this.pesoArista);
         if (this.destinoArista != null) {
           this.edges.add({
             from: this.origenArista,
@@ -97,14 +153,24 @@
       },
 
       eliminarNodo(nodes: { remove: (arg0: IdType) => void }) {
+        this.mostrarMensaje =
+          'Selecciona un nodo dentro del grafo para eliminar';
         this.network.once('click', function (this: Network, params) {
           nodes.remove(this.getNodeAt(params.pointer.DOM));
+        });
+      },
+
+      eliminarArista(edges: { remove: (arg0: IdType) => void }) {
+        this.mostrarMensaje = 'Seleccione una arista para eliminarla';
+        this.network.once('selectEdge', function (this: Network, params) {
+          edges.remove(this.getEdgeAt(params.pointer.DOM));
         });
       },
 
       crearVacio() {
         this.nodes.clear();
         this.edges.clear();
+        this.idNodes = 0;
       },
 
       grafoAleatorio() {
@@ -136,6 +202,7 @@
           { edges: this.edges, nodes: this.nodes },
           this.options
         );
+        this.idNodes = this.nodes.length;
       },
 
       imprimirCanvas() {
@@ -147,7 +214,6 @@
 
         var printWin =
           window?.open('', '', 'width=340,height=260') ?? Window.prototype;
-        console.log(printWin);
         printWin.document.open();
         printWin.document.write(windowContent);
         printWin.document.close();
@@ -472,8 +538,15 @@
       </header>
 
       <section>
-        <div class="container py-5">
+        <div class="container py-3">
           <div class="row justify-content-md-center">
+            <div
+              v-show="mostrarMensaje.length != 0"
+              class="alert alert-success text-center"
+              role="alert"
+            >
+              {{ mostrarMensaje }}
+            </div>
             <div id="mynetwork" class="col" />
           </div>
         </div>
@@ -483,26 +556,57 @@
         <ul class="nav nav-pills justify-content-center">
           <li class="nav-item">
             <button
-              id="botones"
-              class="btn"
+              class="btn btn-primary"
               type="button"
-              @click="añadirNodo()"
+              :disabled="usarBoton"
+              @click="añadirNodo(nodes, idNodes)"
             >
               Añadir nodo
             </button>
           </li>
           <li class="nav-item">
-            <button id="botones" class="btn" @click="mostrarModal = true">
+            <button
+              id="botones"
+              class="btn"
+              :disabled="usarBoton"
+              @click="mostrarModal = true"
+            >
               Añadir arista
             </button>
           </li>
           <li class="nav-item">
-            <button id="botones" class="btn" @click="eliminarNodo(nodes)">
+            <button
+              id="botones"
+              class="btn"
+              :disabled="usarBoton"
+              @click="eliminarNodo(nodes)"
+            >
               Eliminar nodo
             </button>
           </li>
           <li class="nav-item">
-            <button id="botones" class="btn">&#8651; Deshacer</button>
+            <button
+              id="botones"
+              class="btn"
+              :disabled="usarBoton"
+              @click="eliminarArista(edges)"
+            >
+              Eliminar arista
+            </button>
+          </li>
+          <li class="nav-item">
+            <button id="botones" :disabled="usarBoton" class="btn">
+              &#8651; Deshacer
+            </button>
+          </li>
+          <li class="nav-item">
+            <button
+              class="btn btn-primary"
+              :disabled="usarBoton"
+              @click="crearArista(edges, network, mostrarModal)"
+            >
+              crearArista
+            </button>
           </li>
         </ul>
       </section>
