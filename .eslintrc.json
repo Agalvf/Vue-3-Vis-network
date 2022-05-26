@@ -9,8 +9,7 @@
         "plugin:vue/vue3-recommended",
         "eslint:recommended",
         "@vue/typescript/recommended",
-        // Add under other rules
-        "@vue/prettier"
+        "prettier"
     ],
     "parser": "vue-eslint-parser",
     "parserOptions": {

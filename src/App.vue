@@ -101,16 +101,21 @@
         idNodes: number
       ) {
         this.mostrarMensaje = 'Haz click sobre el grafo para agregar un nodo';
-        this.network.once('click', function (params) {
-          nodes.add({
-            id: idNodes + 1,
-            label: `Node ${idNodes + 1}`,
-            x: params.pointer.canvas.x,
-            y: params.pointer.canvas.y,
+        this.usarBoton = true;
+        console.log("Hola mundo");
+        const mariconada = 
+          this.network.once('click', function (params) {
+            nodes.add({
+              id: idNodes + 1,
+              label: `Node ${idNodes + 1}`,
+              x: params.pointer.canvas.x,
+              y: params.pointer.canvas.y,
+            });
+            return(this.usarBoton = false)
           });
-        });
+        
+        console.log(mariconada);
         this.idNodes++;
-        this.usarBoton = false;
       },
 
       /* crearArista(
@@ -130,9 +135,7 @@
         network.on('selectNode', function (params: { pointer: { DOM: any } }) {
           array.push(this.getNodeAt(params.pointer.DOM));
           if (array.length == 2) {
-            network.off('selectNode');
-            console.log(array);
-            return (mostrarModal = true);
+            this.network.off('selectNode');
           } else if (array.length == 0) {
             this.mostrarMensaje = 'Seleccione el primer nodo';
           } else {
@@ -141,8 +144,8 @@
           console.log('Hola', mostrarModal);
         });
         this.idEdges++;
-        this.mostrarModal = true;
       }, */
+
       añadirArista() {
         if (this.destinoArista != null || this.origenArista != null) {
           console.log(this.esDirigido);
@@ -167,6 +170,7 @@
         this.mostrarMensaje =
           'Selecciona un nodo dentro del grafo para eliminar';
         this.network.once('click', function (this: Network, params) {
+          console.log(params);
           nodes.remove(this.getNodeAt(params.pointer.DOM));
         });
       },
@@ -174,6 +178,7 @@
       eliminarArista(edges: { remove: (arg0: IdType) => void }) {
         this.mostrarMensaje = 'Seleccione una arista para eliminarla';
         this.network.once('selectEdge', function (this: Network, params) {
+          console.log(params);
           edges.remove(this.getEdgeAt(params.pointer.DOM));
         });
       },
@@ -540,7 +545,7 @@
         <div class="container py-3">
           <div class="row justify-content-md-center">
             <div
-              v-show="mostrarMensaje.length != 0"
+              v-show= "mostrarMensaje.length != 0"
               class="alert alert-success text-center"
               role="alert"
             >
@@ -569,7 +574,7 @@
               id="botones"
               class="btn"
               :disabled="usarBoton"
-              @click="mostrarModal = true"
+              @click = "mostrarModal = true"
             >
               Añadir arista
             </button>
@@ -594,20 +599,6 @@
               Eliminar arista
             </button>
           </li>
-          <!-- <li class="nav-item">
-            <button id="botones" :disabled="usarBoton" class="btn">
-              &#8651; Deshacer
-            </button>
-          </li> -->
-          <!-- <li class="nav-item">
-            <button
-              class="btn btn-primary"
-              :disabled="usarBoton"
-              @click="crearArista(edges, network, mostrarModal)"
-            >
-              crearArista
-            </button>
-          </li> -->
         </ul>
       </section>
     </div>
