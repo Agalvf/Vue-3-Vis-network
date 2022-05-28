@@ -4,5 +4,6 @@ import eslintPlugin from 'vite-plugin-eslint';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: '/pagina-grafos/',
   plugins: [vue(), eslintPlugin()],
 });

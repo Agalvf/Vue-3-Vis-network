@@ -1,124 +1,124 @@
 <script lang="ts">
-  import { defineComponent } from 'vue';
-  import { IdType, Network } from 'vis-network';
-  import { DataSet } from 'vis-data';
-  import 'https://unpkg.com/vis-network/standalone/umd/vis-network.min.js';
-  import 'https://unpkg.com/default-passive-events';
+import { defineComponent } from "vue";
+import { IdType, Network } from "vis-network";
+import { DataSet } from "vis-data";
+import "https://unpkg.com/vis-network/standalone/umd/vis-network.min.js";
+import "https://unpkg.com/default-passive-events";
 
-  import { jsPDF } from 'jspdf';
+import { jsPDF } from "jspdf";
 
-  export default defineComponent({
-    name: 'App',
-    data() {
-      return {
-        nodes: DataSet.prototype,
-        edges: DataSet.prototype,
-        container: HTMLElement.prototype,
-        network: Network.prototype,
-        mostrarModal: false,
-        origenArista: 0,
-        destinoArista: 0,
-        pesoArista: '0',
-        mostrarMensaje: '',
-        usarBoton: false,
-        idNodes: 0,
-        idEdges: 0,
-        eventos: [],
-        esDirigido: false,
-        options: {
-          locale: 'es',
-          height: '100%',
-          width: '100%',
-          manipulation: {
-            enabled: false,
-            initiallyActive: true,
-          },
-          nodes: {
-            physics: false,
-          },
-          interaction: {
-            multiselect: false,
-            selectConnectedEdges: false,
-          },
+export default defineComponent({
+  name: "App",
+  data() {
+    return {
+      nodes: DataSet.prototype,
+      edges: DataSet.prototype,
+      container: HTMLElement.prototype,
+      network: Network.prototype,
+      mostrarModal: false,
+      origenArista: 0,
+      destinoArista: 0,
+      pesoArista: "0",
+      mostrarMensaje: "",
+      usarBoton: false,
+      idNodes: 0,
+      idEdges: 0,
+      eventos: [],
+      esDirigido: false,
+      matriz: [],
+      vista: true,
+      options: {
+        locale: "es",
+        height: "100%",
+        width: "100%",
+        manipulation: {
+          enabled: false,
+          initiallyActive: true,
         },
+        nodes: {
+          physics: false,
+        },
+        interaction: {
+          multiselect: false,
+          selectConnectedEdges: false,
+        },
+      },
+    };
+  },
+
+  computed: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    graph_data(): any {
+      this.nodes.add([
+        { id: 1, label: "Node 1" },
+        { id: 2, label: "Node 2" },
+        { id: 3, label: "Node 3" },
+        { id: 4, label: "Node 4" },
+      ]);
+
+      this.edges.add([
+        { from: 1, to: 3, label: "0" },
+        { from: 1, to: 2, label: "0" },
+        { from: 2, to: 4, label: "0" },
+      ]);
+
+      return {
+        nodes: this.nodes,
+        edges: this.edges,
       };
     },
 
-    computed: {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      graph_data(): any {
-        this.nodes.add([
-          { id: 1, label: 'Node 1' },
-          { id: 2, label: 'Node 2' },
-          { id: 3, label: 'Node 3' },
-          { id: 4, label: 'Node 4' },
-        ]);
-
-        this.edges.add([
-          { from: 1, to: 3, label: '0' },
-          { from: 1, to: 2, label: '0' },
-          { from: 2, to: 4, label: '0' },
-        ]);
-
-        return {
-          nodes: this.nodes,
-          edges: this.edges,
-        };
-      },
-
-      verificar(): boolean {
-        if (
-          this.origenArista < 0 ||
-          this.origenArista > this.nodes.length ||
-          this.destinoArista < 0 ||
-          this.destinoArista > this.nodes.length
-        ) {
-          return true;
-        } else {
-          return false;
-        }
-      },
-    },
-
-    mounted() {
-      this.nodes = new DataSet();
-      this.edges = new DataSet();
-      this.container = document.getElementById('mynetwork') as HTMLInputElement;
-      this.network = new Network(this.container, this.graph_data, this.options);
-      this.idNodes = this.nodes.length;
-    },
-
-    methods: {
-      añadirNodo(
-        nodes: {
-          add: (arg0: {
-            id: IdType;
-            label: string;
-            x: number;
-            y: number;
-          }) => void;
-        },
-        idNodes: number
+    verificar(): boolean {
+      if (
+        this.origenArista < 0 ||
+        this.origenArista > this.nodes.length ||
+        this.destinoArista < 0 ||
+        this.destinoArista > this.nodes.length
       ) {
-        this.mostrarMensaje = 'Haz click sobre el grafo para agregar un nodo';
-        this.usarBoton = true;
-        console.log("Hola mundo");
-        const mariconada = 
-          this.network.once('click', function (params) {
-            nodes.add({
-              id: idNodes + 1,
-              label: `Node ${idNodes + 1}`,
-              x: params.pointer.canvas.x,
-              y: params.pointer.canvas.y,
-            });
-            return(this.usarBoton = false)
-          });
-        
-        console.log(mariconada);
-        this.idNodes++;
-      },
+        return true;
+      } else {
+        return false;
+      }
+    },
+  },
 
-      /* crearArista(
+  mounted() {
+    this.nodes = new DataSet();
+    this.edges = new DataSet();
+    this.container = document.getElementById("mynetwork") as HTMLInputElement;
+    this.network = new Network(this.container, this.graph_data, this.options);
+    this.idNodes = this.nodes.length;
+    this.convertirMatriz();
+  },
+
+  methods: {
+    añadirNodo(
+      nodes: {
+        add: (arg0: {
+          id: IdType;
+          label: string;
+          x: number;
+          y: number;
+        }) => void;
+      },
+      idNodes: number
+    ) {
+      this.mostrarMensaje = "Haz click sobre el grafo para agregar un nodo";
+      console.log("Hola mundo");
+      this.network.once("click", function (params) {
+        nodes.add({
+          id: idNodes + 1,
+          label: `Node ${idNodes + 1}`,
+          x: params.pointer.canvas.x,
+          y: params.pointer.canvas.y,
+        });
+        return (this.usarBoton = false);
+      });
+
+      this.idNodes++;
+    },
+
+    /* crearArista(
         edges: {
           add: (arg0: { id: IdType; to: number; from: number }) => void;
         },
@@ -146,148 +146,174 @@
         this.idEdges++;
       }, */
 
-      añadirArista() {
-        if (this.destinoArista != null || this.origenArista != null) {
-          console.log(this.esDirigido);
-          if (this.esDirigido == true) {
-            this.edges.add({
-              from: this.origenArista,
-              to: this.destinoArista,
-              label: this.pesoArista,
-              arrows: 'to',
-            });
-          } else {
-            this.edges.add({
-              from: this.origenArista,
-              to: this.destinoArista,
-              label: this.pesoArista,
-            });
+    añadirArista() {
+      if (this.destinoArista != null || this.origenArista != null) {
+        console.log(this.esDirigido);
+        if (this.esDirigido == true) {
+          this.edges.add({
+            from: this.origenArista,
+            to: this.destinoArista,
+            label: this.pesoArista,
+            arrows: "to",
+          });
+        } else {
+          this.edges.add({
+            from: this.origenArista,
+            to: this.destinoArista,
+            label: this.pesoArista,
+          });
+        }
+      }
+    },
+
+    eliminarNodo(nodes: { remove: (arg0: IdType) => void }) {
+      this.mostrarMensaje = "Selecciona un nodo dentro del grafo para eliminar";
+      this.network.once("click", function (this: Network, params) {
+        console.log(params);
+        nodes.remove(this.getNodeAt(params.pointer.DOM));
+      });
+    },
+
+    eliminarArista(edges: { remove: (arg0: IdType) => void }) {
+      this.mostrarMensaje = "Seleccione una arista para eliminarla";
+      this.network.once("selectEdge", function (this: Network, params) {
+        console.log(params);
+        edges.remove(this.getEdgeAt(params.pointer.DOM));
+      });
+    },
+
+    crearVacio() {
+      this.nodes.clear();
+      this.edges.clear();
+      this.idNodes = 0;
+    },
+
+    grafoAleatorio() {
+      this.nodes.clear();
+      this.edges.clear();
+
+      const numeroNodos = Math.floor(Math.random() * (12 - 1) + 3);
+      const nodes = Array(numeroNodos)
+        .fill(1)
+        .map((_, i) => {
+          return { id: i+1, label: `Node ${i+1}` };
+        });
+
+      var arr = [];
+
+      for (var id = 1; id < numeroNodos; id++) {
+        arr.push({
+          from: id,
+          to: nodes[Math.floor(Math.random() * numeroNodos)]["id"],
+          label: `${Math.floor(Math.random() * (15 - 1) + 1)}`,
+          arrows: "to",
+        });
+      }
+
+      this.nodes.add(nodes);
+      this.edges.add(arr);
+
+      this.network = new Network(
+        this.container,
+        { edges: this.edges, nodes: this.nodes },
+        this.options
+      );
+      this.idNodes = this.nodes.length;
+      this.convertirMatriz();
+    },
+
+    imprimirCanvas() {
+      var canvas = document.querySelector(
+        "#mynetwork canvas"
+      ) as HTMLCanvasElement;
+      var png = canvas.toDataURL("image/png");
+      var windowContent = '<img src="' + png + '">';
+
+      var printWin =
+        window?.open("", "", "width=340,height=260") ?? Window.prototype;
+      printWin.document.open();
+      printWin.document.write(windowContent);
+      printWin.document.close();
+
+      printWin.print();
+    },
+
+    convertirMatriz() {
+      const aristas = this.edges.get();
+      for (let i = 0; i <= this.nodes.length; i++) {
+        this.matriz[i] = [];
+        for (let j = 0; j <= this.nodes.length; j++) {
+          this.matriz[i][j] = 0;
+        }
+      }
+
+      for (var i = 0; i <= this.nodes.length; i++) {
+        for (var j = 0; j <= this.nodes.length; j++) {
+          for (var k = 0; k < aristas.length; k++) {
+            if (aristas[k].from == i && aristas[k].to == j) {
+              this.matriz[i][j] = 1;
+              this.matriz[j][i] = 1;
+            }
           }
         }
-      },
-
-      eliminarNodo(nodes: { remove: (arg0: IdType) => void }) {
-        this.mostrarMensaje =
-          'Selecciona un nodo dentro del grafo para eliminar';
-        this.network.once('click', function (this: Network, params) {
-          console.log(params);
-          nodes.remove(this.getNodeAt(params.pointer.DOM));
-        });
-      },
-
-      eliminarArista(edges: { remove: (arg0: IdType) => void }) {
-        this.mostrarMensaje = 'Seleccione una arista para eliminarla';
-        this.network.once('selectEdge', function (this: Network, params) {
-          console.log(params);
-          edges.remove(this.getEdgeAt(params.pointer.DOM));
-        });
-      },
-
-      crearVacio() {
-        this.nodes.clear();
-        this.edges.clear();
-        this.idNodes = 0;
-      },
-
-      grafoAleatorio() {
-        this.nodes.clear();
-        this.edges.clear();
-
-        const numeroNodos = Math.floor(Math.random() * (12 - 1) + 3);
-        const nodes = Array(numeroNodos)
-          .fill(0)
-          .map((_, i) => {
-            return { id: i, label: `Node ${i}` };
-          });
-
-        var arr = [];
-
-        for (var id = 0; id < numeroNodos; id++) {
-          arr.push({
-            from: id,
-            to: nodes[Math.floor(Math.random() * numeroNodos)]['id'],
-            label: `${Math.floor(Math.random() * (15 - 1) + 1)}`,
-            arrows: 'to',
-          });
-        }
-
-        this.nodes.add(nodes);
-        this.edges.add(arr);
-
-        this.network = new Network(
-          this.container,
-          { edges: this.edges, nodes: this.nodes },
-          this.options
-        );
-        this.idNodes = this.nodes.length;
-      },
-
-      imprimirCanvas() {
-        var canvas = document.querySelector(
-          '#mynetwork canvas'
-        ) as HTMLCanvasElement;
-        var png = canvas.toDataURL('image/png');
-        var windowContent = '<img src="' + png + '">';
-
-        var printWin =
-          window?.open('', '', 'width=340,height=260') ?? Window.prototype;
-        printWin.document.open();
-        printWin.document.write(windowContent);
-        printWin.document.close();
-
-        printWin.print();
-      },
-
-      exportarPDF() {
-        var imgData = (
-          document.querySelector('#mynetwork canvas') as HTMLCanvasElement
-        ).toDataURL('image/png', 1.0);
-        var pdf = new jsPDF({
-          orientation: 'landscape',
-          unit: 'in',
-          format: [14, 4],
-        });
-
-        pdf.addImage(imgData, 'JPEG', 0, 0, 0, 0);
-        pdf.save('download.pdf');
-      },
-
-      exportarImagen() {
-        var link = document.createElement('a');
-        link.download = 'filename.png';
-        link.href = (
-          document.querySelector('#mynetwork canvas') as HTMLCanvasElement
-        ).toDataURL('image/png', 1.0);
-        link.click();
-      },
-
-      guardar() {
-        const json = {
-          nodes: this.nodes.get(),
-          edges: this.edges.get(),
-        };
-        let text = JSON.stringify(json);
-        let filename = 'network.json';
-        let element = document.createElement('a');
-        element.setAttribute(
-          'href',
-          'data:application/json;charset=utf-8,' + encodeURIComponent(text)
-        );
-        element.setAttribute('download', filename);
-
-        element.style.display = 'none';
-        document.body.appendChild(element);
-
-        element.click();
-        document.body.removeChild(element);
-      },
+      }
     },
-  });
+
+    exportarPDF() {
+      var imgData = (
+        document.querySelector("#mynetwork canvas") as HTMLCanvasElement
+      ).toDataURL("image/png", 1.0);
+      var pdf = new jsPDF({
+        orientation: "landscape",
+        unit: "in",
+        format: [14, 4],
+      });
+
+      pdf.addImage(imgData, "JPEG", 0, 0, 0, 0);
+      pdf.save("download.pdf");
+    },
+
+    exportarImagen() {
+      var link = document.createElement("a");
+      link.download = "filename.png";
+      link.href = (
+        document.querySelector("#mynetwork canvas") as HTMLCanvasElement
+      ).toDataURL("image/png", 1.0);
+      link.click();
+    },
+
+    guardar() {
+      const json = {
+        nodes: this.nodes.get(),
+        edges: this.edges.get(),
+      };
+      let text = JSON.stringify(json);
+      let filename = "network.json";
+      let element = document.createElement("a");
+      element.setAttribute(
+        "href",
+        "data:application/json;charset=utf-8," + encodeURIComponent(text)
+      );
+      element.setAttribute("download", filename);
+
+      element.style.display = "none";
+      document.body.appendChild(element);
+
+      element.click();
+      document.body.removeChild(element);
+    },
+
+    prueba(){
+      this.mostrarVista = !this.mostrarVista
+      console.log(this.mostrarVista)
+    }
+  },
+});
 </script>
 
 <template>
   <div>
-    <div class="space"></div>
+    <div class=""></div>
     <div class="d-flex w-100 h-100 mx-auto flex-column page">
       <header class="mb-auto">
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -397,7 +423,7 @@
                       </ul>
                     </li>
                     <li>
-                      <button class="dropdown-item" type="button">
+                      <button class="dropdown-item" type="button" @click="importarDatos()">
                         Importar datos
                       </button>
                     </li>
@@ -452,10 +478,10 @@
                     aria-labelledby="navbarScrollingDropdown"
                   >
                     <li>
-                      <button class="dropdown-item" type="button">
+                      <button class="dropdown-item" type="button" @click="vista = true">
                         Gráfica
                       </button>
-                      <button class="dropdown-item" type="button">Tabla</button>
+                      <button class="dropdown-item" type="button" @click="vista = false, convertirMatriz()">Tabla</button>
                     </li>
                   </ul>
                 </li>
@@ -545,13 +571,38 @@
         <div class="container py-3">
           <div class="row justify-content-md-center">
             <div
-              v-show= "mostrarMensaje.length != 0"
+              v-show="mostrarMensaje.length != 0"
               class="alert alert-success text-center"
               role="alert"
             >
               {{ mostrarMensaje }}
             </div>
-            <div id="mynetwork" class="col" />
+            <div v-show="vista" id="mynetwork" class="col" />
+            <div v-show="!vista">
+              <table align="center">
+                <tbody>
+                  <tr>
+                    <th>№</th>
+                    <th v-for="(item, index ) in nodes.length" :key="item">
+                      {{index+1}}
+                    </th>
+                  </tr>
+
+                  <tr  v-for="(item, index) in nodes.length" :key="item">
+                    <th>{{index + 1 }}</th>
+                    <td  v-for="(item2, index2) in nodes.length" :key="index2">
+                      <input
+                        v-model = "matriz[index+1][index2+1]"
+                        type="text"
+                        size="4"
+                        autocomplete="off"
+                        class="inputCell"
+                      />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
@@ -563,7 +614,7 @@
               id="botones"
               class="btn btn-primary"
               type="button"
-              :disabled="usarBoton"
+              :disabled="!vista"
               @click="añadirNodo(nodes, idNodes)"
             >
               Añadir nodo
@@ -573,8 +624,8 @@
             <button
               id="botones"
               class="btn"
-              :disabled="usarBoton"
-              @click = "mostrarModal = true"
+              :disabled="!vista"
+              @click="mostrarModal = true"
             >
               Añadir arista
             </button>
@@ -583,7 +634,7 @@
             <button
               id="botones"
               class="btn"
-              :disabled="usarBoton"
+              :disabled="!vista"
               @click="eliminarNodo(nodes)"
             >
               Eliminar nodo
@@ -593,7 +644,7 @@
             <button
               id="botones"
               class="btn"
-              :disabled="usarBoton"
+              :disabled="!vista"
               @click="eliminarArista(edges)"
             >
               Eliminar arista
@@ -714,8 +765,8 @@
 </template>
 
 <style>
-  #mynetwork {
-    height: 400px;
-    border: 1px solid #000;
-  }
+#mynetwork {
+  height: 400px;
+  border: 1px solid #000;
+}
 </style>
