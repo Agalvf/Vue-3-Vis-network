@@ -25,7 +25,7 @@ export default defineComponent({
       idEdges: 0,
       eventos: [],
       esDirigido: false,
-      matriz: [],
+      matriz: [] as number[][],
       vista: true,
       options: {
         locale: "es",
@@ -57,9 +57,9 @@ export default defineComponent({
       ]);
 
       this.edges.add([
-        { from: 1, to: 3, label: "0" },
-        { from: 1, to: 2, label: "0" },
-        { from: 2, to: 4, label: "0" },
+        { from: 1, to: 3, label: "" + Math.floor(Math.random() * (12 - 1) + 3), arrows: "to" },
+        { from: 1, to: 2, label: ""+ Math.floor(Math.random() * (12 - 1) + 3), arrows: "to" },
+        { from: 2, to: 4, label: "" + Math.floor(Math.random() * (12 - 1) + 3), arrows: "to" },
       ]);
 
       return {
@@ -112,9 +112,7 @@ export default defineComponent({
           x: params.pointer.canvas.x,
           y: params.pointer.canvas.y,
         });
-        return (this.usarBoton = false);
       });
-
       this.idNodes++;
     },
 
@@ -252,7 +250,6 @@ export default defineComponent({
           for (var k = 0; k < aristas.length; k++) {
             if (aristas[k].from == i && aristas[k].to == j) {
               this.matriz[i][j] = 1;
-              this.matriz[j][i] = 1;
             }
           }
         }
@@ -302,18 +299,13 @@ export default defineComponent({
       element.click();
       document.body.removeChild(element);
     },
-
-    prueba(){
-      this.mostrarVista = !this.mostrarVista
-      console.log(this.mostrarVista)
-    }
   },
 });
 </script>
 
 <template>
   <div>
-    <div class=""></div>
+    <div class="space"></div>
     <div class="d-flex w-100 h-100 mx-auto flex-column page">
       <header class="mb-auto">
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -423,7 +415,7 @@ export default defineComponent({
                       </ul>
                     </li>
                     <li>
-                      <button class="dropdown-item" type="button" @click="importarDatos()">
+                      <button class="dropdown-item" type="button">
                         Importar datos
                       </button>
                     </li>
@@ -578,7 +570,7 @@ export default defineComponent({
               {{ mostrarMensaje }}
             </div>
             <div v-show="vista" id="mynetwork" class="col" />
-            <div v-show="!vista">
+            <div v-show="!vista" class="py-5">
               <table align="center">
                 <tbody>
                   <tr>
