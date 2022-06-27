@@ -88,6 +88,7 @@ export default defineComponent({
     this.edges = new DataSet();
     this.idNodes = this.nodes.length;
     this.convertirMatriz();
+    window.addEventListener ("touchmove", function (event) { event.preventDefault (); }, {passive: false});
   },
 
   mounted() {
@@ -101,12 +102,6 @@ export default defineComponent({
 
   methods: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    obtenerNodos(): any {
-      return this.nodes.get({
-        returnType: "Object",
-      });
-    },
-
     añadirNodo(
       nodes: {
         add: (arg0: {
@@ -176,7 +171,6 @@ export default defineComponent({
     grafoAleatorio() {
       this.nodes.clear();
       this.edges.clear();
-
       const numeroNodos = Math.floor(Math.random() * (12 - 1) + 3);
       const nodes = Array(numeroNodos)
         .fill(1)
@@ -274,8 +268,8 @@ export default defineComponent({
     cargar() {
       const input = document.createElement("input");
       input.type = "file";
-      input.onchange = (e) => {
-        const file = e.target.files[0];
+      input.onchange = (e ): void => {
+        const file =  e.target.files[0];
         const reader = new FileReader();
         reader.onload = (e) => {
           const json = JSON.parse(e.target.result as string);
@@ -296,11 +290,10 @@ export default defineComponent({
       input.click();
     },
     exportarExcelMatriz() {
-      /* var wb = XLSX.utils.book_new();
+      var wb = XLSX.utils.book_new();
       var ws = XLSX.utils.json_to_sheet(this.matriz);
       XLSX.utils.book_append_sheet(wb, ws, "Matriz");
-      XLSX.writeFile(wb, "Matriz.xlsx"); */
-      console.log(this.edges.get());
+      XLSX.writeFile(wb, "Matriz.xlsx");
     },
   },
 });
@@ -570,19 +563,19 @@ export default defineComponent({
             <div v-show="vista" id="mynetwork" class="col" />
             <div v-show="!vista" class="py-5">
               <div class="table-responsive">
-                <table class="table table-striped table-bordered table-light">
+                <table class="table table-dark table-striped table-bordered">
                   <thead>
                     <tr>
                       <th scope="col"># Nodo</th>
-                      <th v-for="(item,index) in nodes.get() " :key="item.id">
-                        {{item.label.slice(4,6)}}
+                      <th v-for="(item) in nodes.get() " :key="item.id">
+                        {{item.label.slice(4)}}
                       </th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr v-for="(item, index) in nodes.get()" :key="item.id">
-                      <th scope="row">{{item.label.slice(4,6)}}</th>
-                      <td v-for="(item2,index2) in matriz" :key="item2.id">
+                      <th scope="row">{{item.label.slice(4)}}</th>
+                      <td v-for="(item2) in matriz" :key="item2">
                         {{ item2[index]}}
                       </td>
                     </tr>
