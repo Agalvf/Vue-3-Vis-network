@@ -4,6 +4,7 @@ import { IdType, Network } from "vis-network";
 import { DataSet } from "vis-data";
 import "https://unpkg.com/vis-network/standalone/umd/vis-network.min.js";
 import "https://unpkg.com/default-passive-events";
+import * as XLSX from 'xlsx/xlsx.mjs';
 
 import { jsPDF } from "jspdf";
 
@@ -50,16 +51,16 @@ export default defineComponent({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     graph_data(): any {
       this.nodes.add([
-        { id: 1, label: "Node 1" },
-        { id: 2, label: "Node 2" },
-        { id: 3, label: "Node 3" },
-        { id: 4, label: "Node 4" },
+        { id: 0, label: "Node 1" },
+        { id: 1, label: "Node 2" },
+        { id: 2, label: "Node 3" },
+        { id: 3, label: "Node 4" },
       ]);
 
       this.edges.add([
-        { from: 1, to: 3, label: "" + Math.floor(Math.random() * (12 - 1) + 3), arrows: "to" },
-        { from: 1, to: 2, label: ""+ Math.floor(Math.random() * (12 - 1) + 3), arrows: "to" },
-        { from: 2, to: 4, label: "" + Math.floor(Math.random() * (12 - 1) + 3), arrows: "to" },
+        { id: 0, from: 0, to: 2, label: "" + Math.floor(Math.random() * (12 - 1) + 3), arrows: "to" },
+        { id: 1, from: 0, to: 1, label: ""+ Math.floor(Math.random() * (12 - 1) + 3), arrows: "to" },
+        { id: 2, from: 1, to: 3, label: "" + Math.floor(Math.random() * (12 - 1) + 3), arrows: "to" },
       ]);
 
       return {
@@ -69,6 +70,7 @@ export default defineComponent({
     },
 
     verificar(): boolean {
+
       if (
         this.origenArista < 0 ||
         this.origenArista > this.nodes.length ||
@@ -83,6 +85,9 @@ export default defineComponent({
   },
 
   mounted() {
+    window.addEventListener('onMouseWheel', function() {
+    // some logic
+    });
     this.nodes = new DataSet();
     this.edges = new DataSet();
     this.container = document.getElementById("mynetwork") as HTMLInputElement;
@@ -92,6 +97,7 @@ export default defineComponent({
   },
 
   methods: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     añadirNodo(
       nodes: {
         add: (arg0: {
@@ -104,7 +110,6 @@ export default defineComponent({
       idNodes: number
     ) {
       this.mostrarMensaje = "Haz click sobre el grafo para agregar un nodo";
-      console.log("Hola mundo");
       this.network.once("click", function (params) {
         nodes.add({
           id: idNodes + 1,
@@ -116,37 +121,8 @@ export default defineComponent({
       this.idNodes++;
     },
 
-    /* crearArista(
-        edges: {
-          add: (arg0: { id: IdType; to: number; from: number }) => void;
-        },
-        network: {
-          on: (
-            arg0: string,
-            arg1: (params: { pointer: { DOM: any } }) => void
-          ) => void;
-          off: (arg0: string) => void;
-        },
-        mostrarModal: boolean
-      ) {
-        const array: number[] = [];
-        network.on('selectNode', function (params: { pointer: { DOM: any } }) {
-          array.push(this.getNodeAt(params.pointer.DOM));
-          if (array.length == 2) {
-            this.network.off('selectNode');
-          } else if (array.length == 0) {
-            this.mostrarMensaje = 'Seleccione el primer nodo';
-          } else {
-            this.mostrarMensaje = 'Seleccione el segundo nodo';
-          }
-          console.log('Hola', mostrarModal);
-        });
-        this.idEdges++;
-      }, */
-
     añadirArista() {
       if (this.destinoArista != null || this.origenArista != null) {
-        console.log(this.esDirigido);
         if (this.esDirigido == true) {
           this.edges.add({
             from: this.origenArista,
@@ -163,20 +139,18 @@ export default defineComponent({
         }
       }
     },
-
-    eliminarNodo(nodes: { remove: (arg0: IdType) => void }) {
-      this.mostrarMensaje = "Selecciona un nodo dentro del grafo para eliminar";
-      this.network.once("click", function (this: Network, params) {
-        console.log(params);
-        nodes.remove(this.getNodeAt(params.pointer.DOM));
+    eliminarNodo() {
+      this.mostrarMensaje = "Haz click sobre el nodo que deseas eliminar";
+      this.network.once("click", function (params) {
+        this.body.data.nodes.remove(params.nodes[0]);
       });
     },
+   
 
     eliminarArista(edges: { remove: (arg0: IdType) => void }) {
       this.mostrarMensaje = "Seleccione una arista para eliminarla";
       this.network.once("selectEdge", function (this: Network, params) {
-        console.log(params);
-        edges.remove(this.getEdgeAt(params.pointer.DOM));
+        edges.remove(this.getEdgeAt(params.pointer.DOM) as IdType);
       });
     },
 
@@ -184,6 +158,9 @@ export default defineComponent({
       this.nodes.clear();
       this.edges.clear();
       this.idNodes = 0;
+      this.idEdges = 0;
+      this.matriz = [];
+      this.vista = true;
     },
 
     grafoAleatorio() {
@@ -194,13 +171,14 @@ export default defineComponent({
       const nodes = Array(numeroNodos)
         .fill(1)
         .map((_, i) => {
-          return { id: i+1, label: `Node ${i+1}` };
+          return { id: i, label: `Node ${i+1}` };
         });
 
       var arr = [];
 
-      for (var id = 1; id < numeroNodos; id++) {
+      for (var id = 0; id < numeroNodos; id++) {
         arr.push({
+          id: id,
           from: id,
           to: nodes[Math.floor(Math.random() * numeroNodos)]["id"],
           label: `${Math.floor(Math.random() * (15 - 1) + 1)}`,
@@ -237,22 +215,20 @@ export default defineComponent({
     },
 
     convertirMatriz() {
-      const aristas = this.edges.get();
-      for (let i = 0; i <= this.nodes.length; i++) {
+      this.matriz = [];
+      for (let i = 0; i < this.nodes.length; i++) {
         this.matriz[i] = [];
-        for (let j = 0; j <= this.nodes.length; j++) {
+        this.matriz[i].length = this.nodes.length;
+      }
+      for (let i = 0; i < this.matriz.length; i++) {
+        for (let j = 0; j < this.matriz[i].length; j++) {
           this.matriz[i][j] = 0;
         }
       }
-
-      for (var i = 0; i <= this.nodes.length; i++) {
-        for (var j = 0; j <= this.nodes.length; j++) {
-          for (var k = 0; k < aristas.length; k++) {
-            if (aristas[k].from == i && aristas[k].to == j) {
-              this.matriz[i][j] = 1;
-            }
-          }
-        }
+      console.log(this.edges.get());
+      console.log(this.nodes.get())
+      for (let i = 0; i < this.edges.length; i++) {
+        this.matriz[this.edges.get(i).from][this.edges.get(i).to] = 1;
       }
     },
 
@@ -265,17 +241,16 @@ export default defineComponent({
         unit: "in",
         format: [14, 4],
       });
-
       pdf.addImage(imgData, "JPEG", 0, 0, 0, 0);
       pdf.save("download.pdf");
     },
 
     exportarImagen() {
       var link = document.createElement("a");
-      link.download = "filename.png";
       link.href = (
         document.querySelector("#mynetwork canvas") as HTMLCanvasElement
       ).toDataURL("image/png", 1.0);
+      link.download = "mynetwork.png";
       link.click();
     },
 
@@ -284,20 +259,43 @@ export default defineComponent({
         nodes: this.nodes.get(),
         edges: this.edges.get(),
       };
-      let text = JSON.stringify(json);
-      let filename = "network.json";
-      let element = document.createElement("a");
-      element.setAttribute(
-        "href",
-        "data:application/json;charset=utf-8," + encodeURIComponent(text)
-      );
-      element.setAttribute("download", filename);
-
-      element.style.display = "none";
-      document.body.appendChild(element);
-
-      element.click();
-      document.body.removeChild(element);
+      const jsonString = JSON.stringify(json);
+      const blob = new Blob([jsonString], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "grafo.json";
+      link.click();
+    },
+    cargar() {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const json = JSON.parse(e.target.result as string);
+          this.nodes.clear();
+          this.edges.clear();
+          this.nodes.add(json.nodes);
+          this.edges.add(json.edges);
+          this.network = new Network(
+            this.container,
+            { edges: this.edges, nodes: this.nodes },
+            this.options
+          );
+          this.idNodes = this.nodes.length;
+          this.convertirMatriz();
+        };
+        reader.readAsText(file);
+      };
+      input.click();
+    },
+    exportarExcelMatriz() {
+      var wb = XLSX.utils.book_new();
+      var ws = XLSX.utils.json_to_sheet(this.matriz);
+      XLSX.utils.book_append_sheet(wb, ws, "Matriz");
+      XLSX.writeFile(wb, "Matriz.xlsx");
     },
   },
 });
@@ -305,7 +303,7 @@ export default defineComponent({
 
 <template>
   <div>
-    <div class="space"></div>
+    <div class=""></div>
     <div class="d-flex w-100 h-100 mx-auto flex-column page">
       <header class="mb-auto">
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -371,26 +369,12 @@ export default defineComponent({
                       </ul>
                     </li>
                     <li>
-                      <button
-                        class="dropdown-item"
-                        type="button"
-                        @click="guardar"
-                      >
-                        Guardar
-                      </button>
-                    </li>
-                    <li>
-                      <button class="dropdown-item" type="button">
-                        Guardar como
-                      </button>
-                    </li>
-                    <li>
                       <a href="#" class="dropdown-item"
                         >Exportar datos &raquo;</a
                       >
                       <ul class="dropdown-menu dropdown-submenu">
                         <li>
-                          <button class="dropdown-item" type="button">
+                          <button class="dropdown-item" type="button" @click="exportarExcelMatriz">
                             Excel
                           </button>
                         </li>
@@ -412,11 +396,20 @@ export default defineComponent({
                             PDF
                           </button>
                         </li>
+                        <li>
+                          <button
+                            type="button"
+                            class="dropdown-item"
+                            @click="guardar"
+                          >
+                            JSON
+                          </button>
+                        </li>
                       </ul>
                     </li>
                     <li>
-                      <button class="dropdown-item" type="button">
-                        Importar datos
+                      <button class="dropdown-item" type="button" @click="cargar">
+                        Importar JSON
                       </button>
                     </li>
                     <li>
@@ -571,29 +564,26 @@ export default defineComponent({
             </div>
             <div v-show="vista" id="mynetwork" class="col" />
             <div v-show="!vista" class="py-5">
-              <table align="center">
-                <tbody>
-                  <tr>
-                    <th>№</th>
-                    <th v-for="(item, index ) in nodes.length" :key="item">
-                      {{index+1}}
-                    </th>
-                  </tr>
-
-                  <tr  v-for="(item, index) in nodes.length" :key="item">
-                    <th>{{index + 1 }}</th>
-                    <td  v-for="(item2, index2) in nodes.length" :key="index2">
-                      <input
-                        v-model = "matriz[index+1][index2+1]"
-                        type="text"
-                        size="4"
-                        autocomplete="off"
-                        class="inputCell"
-                      />
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <div class="table-responsive">
+                <table class="table table-striped table-bordered table-light">
+                  <thead>
+                    <tr>
+                      <th scope="col">#</th>
+                      <th v-for="(item,index) in matriz">
+                        {{index}}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(item, index) in matriz">
+                      <th scope="row">{{index}}</th>
+                      <td v-for="(item2,index2) in matriz">
+                        {{ item[index2] }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>  
             </div>
           </div>
         </div>
