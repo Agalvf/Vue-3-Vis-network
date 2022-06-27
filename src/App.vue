@@ -70,7 +70,6 @@ export default defineComponent({
     },
 
     verificar(): boolean {
-
       if (
         this.origenArista < 0 ||
         this.origenArista > this.nodes.length ||
@@ -83,11 +82,15 @@ export default defineComponent({
       }
     },
   },
+  
+  beforeMount() {
+    this.nodes = new DataSet();
+    this.edges = new DataSet();
+    this.idNodes = this.nodes.length;
+    this.convertirMatriz();
+  },
 
   mounted() {
-    window.addEventListener('onMouseWheel', function() {
-    // some logic
-    });
     this.nodes = new DataSet();
     this.edges = new DataSet();
     this.container = document.getElementById("mynetwork") as HTMLInputElement;
@@ -98,6 +101,12 @@ export default defineComponent({
 
   methods: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    obtenerNodos(): any {
+      return this.nodes.get({
+        returnType: "Object",
+      });
+    },
+
     añadirNodo(
       nodes: {
         add: (arg0: {
@@ -125,15 +134,15 @@ export default defineComponent({
       if (this.destinoArista != null || this.origenArista != null) {
         if (this.esDirigido == true) {
           this.edges.add({
-            from: this.origenArista,
-            to: this.destinoArista,
+            from: this.origenArista-1,
+            to: this.destinoArista-1,
             label: this.pesoArista,
             arrows: "to",
           });
         } else {
           this.edges.add({
-            from: this.origenArista,
-            to: this.destinoArista,
+            from: this.origenArista-1,
+            to: this.destinoArista-1,
             label: this.pesoArista,
           });
         }
@@ -142,6 +151,7 @@ export default defineComponent({
     eliminarNodo() {
       this.mostrarMensaje = "Haz click sobre el nodo que deseas eliminar";
       this.network.once("click", function (params) {
+        this.body.data.edges.remove(this.getConnectedEdges(params.nodes[0]));
         this.body.data.nodes.remove(params.nodes[0]);
       });
     },
@@ -203,14 +213,13 @@ export default defineComponent({
         "#mynetwork canvas"
       ) as HTMLCanvasElement;
       var png = canvas.toDataURL("image/png");
-      var windowContent = '<img src="' + png + '">';
+      var windowContent =   '<img src="' + png + '">}';
 
       var printWin =
-        window?.open("", "", "width=340,height=260") ?? Window.prototype;
-      printWin.document.open();
+        window.open("", "", "width=800,height=800,scrollbars=yes") ?? window;
       printWin.document.write(windowContent);
       printWin.document.close();
-
+      printWin.focus();
       printWin.print();
     },
 
@@ -219,17 +228,12 @@ export default defineComponent({
       for (let i = 0; i < this.nodes.length; i++) {
         this.matriz[i] = [];
         this.matriz[i].length = this.nodes.length;
+        this.matriz[i].fill(0);
       }
-      for (let i = 0; i < this.matriz.length; i++) {
-        for (let j = 0; j < this.matriz[i].length; j++) {
-          this.matriz[i][j] = 0;
-        }
-      }
-      console.log(this.edges.get());
-      console.log(this.nodes.get())
-      for (let i = 0; i < this.edges.length; i++) {
-        this.matriz[this.edges.get(i).from][this.edges.get(i).to] = 1;
-      }
+
+      this.edges.get().forEach((edge) => {
+        this.matriz[edge.from][edge.to] = 1;
+      });
     },
 
     exportarPDF() {
@@ -292,10 +296,11 @@ export default defineComponent({
       input.click();
     },
     exportarExcelMatriz() {
-      var wb = XLSX.utils.book_new();
+      /* var wb = XLSX.utils.book_new();
       var ws = XLSX.utils.json_to_sheet(this.matriz);
       XLSX.utils.book_append_sheet(wb, ws, "Matriz");
-      XLSX.writeFile(wb, "Matriz.xlsx");
+      XLSX.writeFile(wb, "Matriz.xlsx"); */
+      console.log(this.edges.get());
     },
   },
 });
@@ -568,17 +573,17 @@ export default defineComponent({
                 <table class="table table-striped table-bordered table-light">
                   <thead>
                     <tr>
-                      <th scope="col">#</th>
-                      <th v-for="(item,index) in matriz">
-                        {{index}}
+                      <th scope="col"># Nodo</th>
+                      <th v-for="(item,index) in nodes.get() " :key="item.id">
+                        {{item.label.slice(4,6)}}
                       </th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="(item, index) in matriz">
-                      <th scope="row">{{index}}</th>
-                      <td v-for="(item2,index2) in matriz">
-                        {{ item[index2] }}
+                    <tr v-for="(item, index) in nodes.get()" :key="item.id">
+                      <th scope="row">{{item.label.slice(4,6)}}</th>
+                      <td v-for="(item2,index2) in matriz" :key="item2.id">
+                        {{ item2[index]}}
                       </td>
                     </tr>
                   </tbody>
@@ -617,7 +622,7 @@ export default defineComponent({
               id="botones"
               class="btn"
               :disabled="!vista"
-              @click="eliminarNodo(nodes)"
+              @click="eliminarNodo()"
             >
               Eliminar nodo
             </button>
