@@ -145,7 +145,7 @@ export default defineComponent({
     },
     eliminarNodo() {
       this.mostrarMensaje = "Haz click sobre el nodo que deseas eliminar";
-      this.network.once("click", function (params) {
+      this.network.once("click",  function (this:Network,params ) {
         this.body.data.edges.remove(this.getConnectedEdges(params.nodes[0]));
         this.body.data.nodes.remove(params.nodes[0]);
       });
@@ -268,11 +268,11 @@ export default defineComponent({
     cargar() {
       const input = document.createElement("input");
       input.type = "file";
-      input.onchange = (e ): void => {
-        const file =  e.target.files[0];
+      input.onchange = (e): void => {
+        const file =  e.target?.files[0] as File;
         const reader = new FileReader();
         reader.onload = (e) => {
-          const json = JSON.parse(e.target.result as string);
+          const json = JSON.parse(e.target?.result as string);
           this.nodes.clear();
           this.edges.clear();
           this.nodes.add(json.nodes);
@@ -575,7 +575,7 @@ export default defineComponent({
                   <tbody>
                     <tr v-for="(item, index) in nodes.get()" :key="item.id">
                       <th scope="row">{{item.label.slice(4)}}</th>
-                      <td v-for="(item2) in matriz" :key="item2">
+                      <td v-for="(item2,index2) in matriz" :key="index2">
                         {{ item2[index]}}
                       </td>
                     </tr>
