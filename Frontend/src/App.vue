@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent } from "vue";
-import { IdType, Network } from "vis-network";
+import { IdType, network, Network } from "vis-network";
 import { DataSet } from "vis-data";
 import "https://unpkg.com/vis-network/standalone/umd/vis-network.min.js";
 import "https://unpkg.com/default-passive-events";
@@ -58,18 +58,20 @@ export default defineComponent({
       ]);
 
       this.edges.add([
-        { id: 0, from: 0, to: 2, label: "" + Math.floor(Math.random() * (12 - 1) + 3), arrows: "to" },
-        { id: 1, from: 0, to: 1, label: "" + Math.floor(Math.random() * (12 - 1) + 3), arrows: "to" },
-        { id: 2, from: 1, to: 3, label: "" + Math.floor(Math.random() * (12 - 1) + 3), arrows: "to" },
+        { id: 0, from: 0, to: 2, label: "" + Math.floor(Math.random() * (12 - 1) + 3) },
+        { id: 1, from: 0, to: 1, label: "" + Math.floor(Math.random() * (12 - 1) + 3)},
+        { id: 2, from: 1, to: 3, label: "" + Math.floor(Math.random() * (12 - 1) + 3)},
       ]);
 
       return {
         nodes: this.nodes,
         edges: this.edges,
       };
+
     },
 
     verificar(): boolean {
+
       if (
         this.origenArista < 0 ||
         this.origenArista > this.nodes.length ||
@@ -98,12 +100,17 @@ export default defineComponent({
 
   methods: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-
-    selecionarNodosyPintarAristas(nodes) {
+    seleccionarNodos(nodes: { update: (arg0: { id: IdType; color: string; }) => void; },edges,network) {
       this.network.on('selectNode', function (this: Network, params) {
-        this.getSelectedNodes().forEach(function (node: IdType) {
-          nodes.update({ id: node, color: '#ff0000' });
+        this.getSelectedNodes().forEach(function (nodo) {
+          nodes.update({ id: nodo, color: '#ff0000' });
+          network.getConnectedEdges(nodo).forEach(function (edge) {
+            edges.update({ id: edge, color: '#ff0000' });
+          });
         });
+        /* this.getSelectedNodes().forEach(function (node: IdType) {
+          nodes.update({ id: node, color: '#ff0000' });
+        }); */
       });
     },
 
@@ -124,7 +131,7 @@ export default defineComponent({
         .then((response) => {
           this.mostrarMensaje = "Se ha encontrado una solución optima de " + response.data.mincut_num + " arista(s)" + "  - tiempo de ejecución: " + response.data.time + " milisegundos";
           for (let [key, value] of response.data.mincut_edges) {
-            this.edges.get().forEach(function (edges) {
+            this.edges.get().forEach(function (this: DataSet ,edges: {from: number; to: number; id: number; }) {
               if (edges.from == alphabet.indexOf(key) && edges.to == alphabet.indexOf(value) 
               || edges.from == alphabet.indexOf(value) && edges.to == alphabet.indexOf(key)) {
                 this.edges.update({ id: edges.id, color: '#ff0000' });
@@ -132,7 +139,7 @@ export default defineComponent({
             }.bind(this))
           }
         })
-        .catch((error) => {
+        .catch(() => {
           this.mostrarMensaje = "No se ha encontrado una solución optima";
           this.usarBoton = false;
         });
@@ -223,7 +230,6 @@ export default defineComponent({
             return random;
           }(),
           label: `${Math.floor(Math.random() * (15 - 1) + 1)}`,
-          arrows: "to",
         });
       }
 
@@ -336,26 +342,15 @@ export default defineComponent({
 
 <template>
   <div>
-    <div class=""></div>
+    <div class="space"></div>
     <div class="d-flex w-100 h-100 mx-auto flex-column page">
       <header class="mb-auto">
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <nav class="navbar navbar-expand-md navbar-expand-lg navbar-dark bg-faded">
           <div class="container-fluid">
-            <button class="navbar-toggler" type="button" data-mdb-toggle="collapse"
-              data-mdb-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
-              aria-label="Toggle navigation">
-              <i class="fas fa-bars" />
-            </button>
-            <div id="navbarSupportedContent" class="collapse navbar-collapse">
-              <a class="navbar-brand mt-2 mt-lg-0" href="#">
-                <img src="https://mdbcdn.b-cdn.net/img/logo/mdb-transaprent-noshadows.webp" height="15" alt="MDB Logo"
-                  loading="lazy" />
-              </a>
-
-              <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item dropdown">
+              <ul class="navbar-nav mx-auto">
+                <li class="nav-item dropdown text-center text-light">
                   <a id="navbarScrollingDropdown" class="nav-link dropdown-toggle" href="#" role="button"
-                    data-bs-toggle="dropdown" aria-expanded="false">
+                    data-bs-toggle="dropdown" aria-expanded="false" >
                     Archivo
                   </a>
                   <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
@@ -412,26 +407,26 @@ export default defineComponent({
                   </ul>
                 </li>
 
-                <li class="nav-item dropdown">
+                <li class="nav-item dropdown text-center">
                   <a id="navbarScrollingDropdown" class="nav-link dropdown-toggle" href="#" role="button"
                     data-bs-toggle="dropdown" aria-expanded="false">
                     Analizar
                   </a>
                   <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
                     <li>
-                      <button class="dropdown-item" type="button">
-                        Algoritmos
+                      <button class="dropdown-item" type="button" @click="seleccionarNodos(nodes,edges,network)">
+                        Algoritmo de partición de nodos
                       </button>
                     </li>
                     <li>
-                      <button class="dropdown-item" type="button" @click="selecionarNodosyPintarAristas(nodes)">
-                        Opción 1
+                      <button class="dropdown-item" type="button" @click="algoritmoKruger">
+                        Algoritmo de Kruger
                       </button>
                     </li>
                   </ul>
                 </li>
 
-                <li class="nav-item dropdown">
+                <li class="nav-item dropdown text-center">
                   <a id="navbarScrollingDropdown" class="nav-link dropdown-toggle" href="#" role="button"
                     data-bs-toggle="dropdown" aria-expanded="false">
                     Ventana
@@ -447,59 +442,7 @@ export default defineComponent({
                   </ul>
                 </li>
               </ul>
-            </div>
-            <!-- Collapsible wrapper -->
-
-            <!-- Right elements -->
-            <div class="d-flex align-items-center">
-              <!-- Icon -->
-              <a class="text-reset me-3" href="#">
-                <i class="fas fa-shopping-cart" />
-              </a>
-
-              <!-- Notifications -->
-              <div class="dropdown">
-                <a id="navbarDropdownMenuLink" class="text-reset me-3 dropdown-toggle hidden-arrow" href="#"
-                  role="button" data-mdb-toggle="dropdown" aria-expanded="false">
-                  <i class="fas fa-bell" />
-                  <span class="badge rounded-pill badge-notification bg-danger">1</span>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuLink">
-                  <li>
-                    <a class="dropdown-item" href="#">Some news</a>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="#">Another news</a>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="#">Something else here</a>
-                  </li>
-                </ul>
-              </div>
-
-              <!-- Avatar -->
-              <div class="dropdown">
-                <a id="navbarDropdownMenuAvatar" class="dropdown-toggle d-flex align-items-center hidden-arrow" href="#"
-                  role="button" data-mdb-toggle="dropdown" aria-expanded="false">
-                  <img src="https://mdbcdn.b-cdn.net/img/new/avatars/2.webp" class="rounded-circle" height="25"
-                    alt="Black and White Portrait of a Man" loading="lazy" />
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuAvatar">
-                  <li>
-                    <a class="dropdown-item" href="#">My profile</a>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="#">Settings</a>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="#">Logout</a>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <!-- Right elements -->
           </div>
-          <!-- Container wrapper -->
         </nav>
       </header>
 
@@ -539,8 +482,7 @@ export default defineComponent({
       <section>
         <ul class="nav nav-pills justify-content-center">
           <li class="nav-item">
-            <button id="botones" class="btn btn-primary" type="button" :disabled="!vista"
-              @click="añadirNodo()">
+            <button id="botones" class="btn btn-primary" type="button" :disabled="!vista" @click="añadirNodo()">
               Añadir nodo
             </button>
           </li>
@@ -557,11 +499,6 @@ export default defineComponent({
           <li class="nav-item">
             <button id="botones" class="btn" :disabled="!vista" @click="eliminarArista(edges)">
               Eliminar arista
-            </button>
-          </li>
-          <li class="nav-item">
-            <button id="botones" class="btn" :disabled="!vista" @click="algoritmoKruger">
-              Algoritmo de Kruger
             </button>
           </li>
         </ul>
@@ -631,8 +568,8 @@ export default defineComponent({
               <button type="button" class="btn btn-secondary" @click="mostrarModal = false">
                 Cancelar
               </button>
-              <button type="button" class="btn btn-primary" :disabled="verificar"
-                @click="añadirArista() (mostrarModal = false) ">
+              <button type="button" class="btn btn-primary" :disabled="verificar">
+                @click="añadirArista, (mostrarModal = false) ">
                 Guardar
               </button>
             </div>
