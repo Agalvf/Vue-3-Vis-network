@@ -6,3 +6,4 @@ import 'bootstrap';
 import './assets/styles.css';
 
 createApp(App).mount('#app');
+
