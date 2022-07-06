@@ -1,10 +1,9 @@
 from distutils.debug import DEBUG
-from pickle import TRUE
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 
-DEBUG = TRUE
+DEBUG = True
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -18,6 +17,10 @@ def ping_pong():
     import karger_mincut
     return karger_mincut.iniciar_grafo(request.json) 
 
+@app.route('/stoer-wagner', methods=['GET', 'POST'])
+def ping_pong2():
+    import stoer_wagner
+    return stoer_wagner.iniciar_grafo(request.json)
 
 if __name__ == '__main__':
     app.run()

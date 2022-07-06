@@ -22,7 +22,9 @@ export default defineComponent({
       destinoArista: 0,
       pesoArista: "0",
       mostrarMensaje: "",
-      usarBoton: false,  
+      usarBoton: false,
+      nodosStr: "",
+      aristaEliminar: "",
       idEdges: 0,
       eventos: [],
       esDirigido: false,
@@ -59,8 +61,8 @@ export default defineComponent({
 
       this.edges.add([
         { id: 0, from: 0, to: 2, label: "" + Math.floor(Math.random() * (12 - 1) + 3) },
-        { id: 1, from: 0, to: 1, label: "" + Math.floor(Math.random() * (12 - 1) + 3)},
-        { id: 2, from: 1, to: 3, label: "" + Math.floor(Math.random() * (12 - 1) + 3)},
+        { id: 1, from: 0, to: 1, label: "" + Math.floor(Math.random() * (12 - 1) + 3) },
+        { id: 2, from: 1, to: 3, label: "" + Math.floor(Math.random() * (12 - 1) + 3) },
       ]);
 
       return {
@@ -100,7 +102,7 @@ export default defineComponent({
 
   methods: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    seleccionarNodos(nodes: { update: (arg0: { id: IdType; color: string; }) => void; },edges,network) {
+    seleccionarNodos(nodes: { update: (arg0: { id: IdType; color: string; }) => void; }, edges, network) {
       this.network.on('selectNode', function (this: Network, params) {
         this.getSelectedNodes().forEach(function (nodo) {
           nodes.update({ id: nodo, color: '#ff0000' });
@@ -114,7 +116,7 @@ export default defineComponent({
       });
     },
 
-    algoritmoKruger() {
+    algoritmoKrager() {
       const lista = {}
       let alphabet = 'abcdefghijklmnopqrstuvwxyz';
 
@@ -131,9 +133,9 @@ export default defineComponent({
         .then((response) => {
           this.mostrarMensaje = "Se ha encontrado una solución optima de " + response.data.mincut_num + " arista(s)" + "  - tiempo de ejecución: " + response.data.time + " milisegundos";
           for (let [key, value] of response.data.mincut_edges) {
-            this.edges.get().forEach(function (this: DataSet ,edges: {from: number; to: number; id: number; }) {
-              if (edges.from == alphabet.indexOf(key) && edges.to == alphabet.indexOf(value) 
-              || edges.from == alphabet.indexOf(value) && edges.to == alphabet.indexOf(key)) {
+            this.edges.get().forEach(function (this: DataSet, edges: { from: number; to: number; id: number; }) {
+              if (edges.from == alphabet.indexOf(key) && edges.to == alphabet.indexOf(value)
+                || edges.from == alphabet.indexOf(value) && edges.to == alphabet.indexOf(key)) {
                 this.edges.update({ id: edges.id, color: '#ff0000' });
               }
             }.bind(this))
@@ -143,6 +145,22 @@ export default defineComponent({
           this.mostrarMensaje = "No se ha encontrado una solución optima";
           this.usarBoton = false;
         });
+    },
+
+    algoritmoStoerWagner() {
+      const lista = [] as number[];
+      this.edges.get().forEach(function (edges) {
+        lista.push([edges.from, edges.to, parseInt(edges.label)]);
+      }.bind(this))
+
+      axios.post("http://localhost:5000/stoer-wagner", { lista })
+        .then((response) => {
+          this.mostrarMensaje = "Se ha encontrado una solución optima de " + response.data.mincut_num + " arista(s)" + "  - tiempo de ejecución: " + response.data.time + " milisegundos";
+          console.log(response.data.mincut_edges)
+          console.log(response.data.partition[0])
+          this.obtenerAristasAdyacentes(response.data.partition[0])
+        })
+
     },
 
     añadirNodo() {
@@ -155,11 +173,6 @@ export default defineComponent({
           y: params.pointer.canvas.y,
         });
       });
-    },
-
-    añadirArista() {
-      this.mostrarMensaje = "Haz click en el primer nodo para agregar una arista";
-      console.log(this.añadirArista());
     },
 
     añadirArista() {
@@ -336,112 +349,165 @@ export default defineComponent({
       XLSX.utils.book_append_sheet(wb, ws, "Matriz");
       XLSX.writeFile(wb, "Matriz.xlsx");
     },
+    obtenerAristasAdyacentes(nodosStr) {
+      const nodos = nodosStr
+      console.log(nodos)
+      // Obtenemos las aristas para cada nodo (filtradas)
+      for (const nodo of nodos) {
+        const demasNodos = nodos.filter((n) => n != nodo);
+        // TODO: obtener el nodo de vis usando nodo como inidce.
+
+        /* Se obtiene los nodos que estan en demasNodos que son los cortados y se les cambia de color */
+        demasNodos.forEach((n) => {
+          this.nodes.update({
+            id: n,
+            color: {
+              background: "#ff0000", //Aqui se le asigna el color a rojo, para que se vea que esta cortado.
+            },
+          });
+        })
+
+        this.edges.get().forEach((edge) => {
+          if (edge.to === nodo) {
+            // nodo es un destino, entonces validamos que los otros nodos
+            // (ingresados por el usuario) no sean un origen
+            const algunoDeLosDemasEsOrigen = demasNodos.includes(edge.from);
+            if (algunoDeLosDemasEsOrigen) {
+              console.log("Se descarta la arista", edge);
+            } else {
+              this.edges.update([{ ...edge, dashes: true, color: "#ff0000" }]); //Aquí se le asigna el color a rojo, para que se vea que esta cortado.
+              // TODO: cambiar el estilo del nodo.
+            }
+          }
+          if (edge.from === nodo) {
+            // nodo es un origen, entonces validamos que los otros nodos
+            // (ingresados por el usuario) no sean un destino
+            const algunoDeLosDemasEsDestino = demasNodos.includes(edge.to);
+            if (algunoDeLosDemasEsDestino) {
+              console.log("Se descarta la arista", edge);
+            } else {
+              this.edges.update([{ ...edge, dashes: true, color: "#ff0000" }]); //Aquí se le asigna el color a rojo, para que se vea que esta cortado.
+              // TODO: cambiar el estilo del nodo.
+            }
+          }
+        });
+        //this.nodes.get().forEach((nodes) => {
+        //if(nodes.thisNodes()==nodo){
+        //nodes.editNode();
+        //}
+        //});
+      }
+    },
   },
 });
 </script>
 
 <template>
   <div>
-    <div class="space"></div>
+    <div class=""></div>
     <div class="d-flex w-100 h-100 mx-auto flex-column page">
       <header class="mb-auto">
         <nav class="navbar navbar-expand-md navbar-expand-lg navbar-dark bg-faded">
           <div class="container-fluid">
-              <ul class="navbar-nav mx-auto">
-                <li class="nav-item dropdown text-center text-light">
-                  <a id="navbarScrollingDropdown" class="nav-link dropdown-toggle" href="#" role="button"
-                    data-bs-toggle="dropdown" aria-expanded="false" >
-                    Archivo
-                  </a>
-                  <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                    <li>
-                      <a href="#" class="dropdown-item">Nuevo grafo &raquo;</a>
-                      <ul class="dropdown-menu dropdown-submenu">
-                        <li>
-                          <button class="dropdown-item" type="button" @click="crearVacio">
-                            Vació
-                          </button>
-                        </li>
-                        <li>
-                          <button type="button" class="dropdown-item" @click="grafoAleatorio">
-                            Aleatorio
-                          </button>
-                        </li>
-                      </ul>
-                    </li>
-                    <li>
-                      <a href="#" class="dropdown-item">Exportar datos &raquo;</a>
-                      <ul class="dropdown-menu dropdown-submenu">
-                        <li>
-                          <button class="dropdown-item" type="button" @click="exportarExcelMatriz">
-                            Excel
-                          </button>
-                        </li>
-                        <li>
-                          <button type="button" class="dropdown-item" @click="exportarImagen">
-                            Imagen
-                          </button>
-                        </li>
-                        <li>
-                          <button type="button" class="dropdown-item" @click="exportarPDF">
-                            PDF
-                          </button>
-                        </li>
-                        <li>
-                          <button type="button" class="dropdown-item" @click="guardar">
-                            JSON
-                          </button>
-                        </li>
-                      </ul>
-                    </li>
-                    <li>
-                      <button class="dropdown-item" type="button" @click="cargar">
-                        Importar JSON
-                      </button>
-                    </li>
-                    <li>
-                      <button class="dropdown-item" type="button" @click="imprimirCanvas">
-                        Imprimir
-                      </button>
-                    </li>
-                  </ul>
-                </li>
+            <ul class="navbar-nav mx-auto">
+              <li class="nav-item dropdown text-center text-light">
+                <a id="navbarScrollingDropdown" class="nav-link dropdown-toggle" href="#" role="button"
+                  data-bs-toggle="dropdown" aria-expanded="false">
+                  Archivo
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                  <li>
+                    <a href="#" class="dropdown-item">Nuevo grafo &raquo;</a>
+                    <ul class="dropdown-menu dropdown-submenu">
+                      <li>
+                        <button class="dropdown-item" type="button" @click="crearVacio">
+                          Vació
+                        </button>
+                      </li>
+                      <li>
+                        <button type="button" class="dropdown-item" @click="grafoAleatorio">
+                          Aleatorio
+                        </button>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <a href="#" class="dropdown-item">Exportar datos &raquo;</a>
+                    <ul class="dropdown-menu dropdown-submenu">
+                      <li>
+                        <button class="dropdown-item" type="button" @click="exportarExcelMatriz">
+                          Excel
+                        </button>
+                      </li>
+                      <li>
+                        <button type="button" class="dropdown-item" @click="exportarImagen">
+                          Imagen
+                        </button>
+                      </li>
+                      <li>
+                        <button type="button" class="dropdown-item" @click="exportarPDF">
+                          PDF
+                        </button>
+                      </li>
+                      <li>
+                        <button type="button" class="dropdown-item" @click="guardar">
+                          JSON
+                        </button>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <button class="dropdown-item" type="button" @click="cargar">
+                      Importar JSON
+                    </button>
+                  </li>
+                  <li>
+                    <button class="dropdown-item" type="button" @click="imprimirCanvas">
+                      Imprimir
+                    </button>
+                  </li>
+                </ul>
+              </li>
 
-                <li class="nav-item dropdown text-center">
-                  <a id="navbarScrollingDropdown" class="nav-link dropdown-toggle" href="#" role="button"
-                    data-bs-toggle="dropdown" aria-expanded="false">
-                    Analizar
-                  </a>
-                  <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
-                    <li>
-                      <button class="dropdown-item" type="button" @click="seleccionarNodos(nodes,edges,network)">
-                        Algoritmo de partición de nodos
-                      </button>
-                    </li>
-                    <li>
-                      <button class="dropdown-item" type="button" @click="algoritmoKruger">
-                        Algoritmo de Kruger
-                      </button>
-                    </li>
-                  </ul>
-                </li>
+              <li class="nav-item dropdown text-center">
+                <a id="navbarScrollingDropdown" class="nav-link dropdown-toggle" href="#" role="button"
+                  data-bs-toggle="dropdown" aria-expanded="false">
+                  Analizar
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+                  <li>
+                    <button class="dropdown-item" type="button" @click="seleccionarNodos(nodes, edges, network)">
+                      Algoritmo de partición de nodos
+                    </button>
+                  </li>
+                  <li>
+                    <button class="dropdown-item" type="button" @click="algoritmoKrager">
+                      Algoritmo de Kruger
+                    </button>
+                  </li>
+                  <li>
+                    <button class="dropdown-item" type="button" @click="algoritmoStoerWagner">
+                      Algoritmo de Stoer-Wagner
+                    </button>
+                  </li>
+                </ul>
+              </li>
 
-                <li class="nav-item dropdown text-center">
-                  <a id="navbarScrollingDropdown" class="nav-link dropdown-toggle" href="#" role="button"
-                    data-bs-toggle="dropdown" aria-expanded="false">
-                    Ventana
-                  </a>
-                  <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
-                    <li>
-                      <button class="dropdown-item" type="button" @click="vista = true">
-                        Gráfica
-                      </button>
-                      <button class="dropdown-item" type="button"
-                        @click="vista = false, convertirMatriz()">Tabla</button>
-                    </li>
-                  </ul>
-                </li>
-              </ul>
+              <li class="nav-item dropdown text-center">
+                <a id="navbarScrollingDropdown" class="nav-link dropdown-toggle" href="#" role="button"
+                  data-bs-toggle="dropdown" aria-expanded="false">
+                  Ventana
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+                  <li>
+                    <button class="dropdown-item" type="button" @click="vista = true">
+                      Gráfica
+                    </button>
+                    <button class="dropdown-item" type="button" @click="vista = false, convertirMatriz()">Tabla</button>
+                  </li>
+                </ul>
+              </li>
+            </ul>
           </div>
         </nav>
       </header>
@@ -506,8 +572,7 @@ export default defineComponent({
     </div>
 
     <teleport to="body">
-      <div 
-      v-if="mostrarModal" class="modal fade show" tabindex="-1" aria-labelledby="exampleModalLabel"
+      <div v-if="mostrarModal" class="modal fade show" tabindex="-1" aria-labelledby="exampleModalLabel"
         aria-hidden="true" role="dialog" style="display: block">
         <div class="modal-dialog modal-dialog-centered modal-backdrop-bg" :draggable="true">
           <div class="modal-content modal-backdrop-bg" :draggable="true">
@@ -536,8 +601,7 @@ export default defineComponent({
                   <div class="col">
                     <p>
                       Destino:
-                      <input 
-                      v-model="destinoArista" type="number" @change="
+                      <input v-model="destinoArista" type="number" @change="
                         () => {
                           if (
                             destinoArista > nodes.length ||
@@ -568,8 +632,8 @@ export default defineComponent({
               <button type="button" class="btn btn-secondary" @click="mostrarModal = false">
                 Cancelar
               </button>
-              <button type="button" class="btn btn-primary" :disabled="verificar">
-                @click="añadirArista, (mostrarModal = false) ">
+              <button type="button" class="btn btn-primary" :disabled="verificar"
+                @click="añadirArista(), (mostrarModal = false)">
                 Guardar
               </button>
             </div>
