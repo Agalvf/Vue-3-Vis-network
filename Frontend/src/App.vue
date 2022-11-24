@@ -404,7 +404,7 @@ export default defineComponent({
 
 <template>
   <div>
-    <div class=""></div>
+    <div class="space"></div>
     <div class="d-flex w-100 h-100 mx-auto flex-column page">
       <header class="mb-auto">
         <nav class="navbar navbar-expand-md navbar-expand-lg navbar-dark bg-faded">
